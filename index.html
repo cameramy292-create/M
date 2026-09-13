@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام شبكة الأمير نت الموحد الشامل</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    
+    <style>
+        :root {
+            --primary: #1565c0;
+            --primary-dark: #061d3b;
+            --accent: #00a8ff;
+            --bg: #f3f7ff;
+            --white: #ffffff;
+            --danger: #e53935;
+            --success: #008f45;
+            --warning: #f57c00;
+            --card-shadow: 0 10px 25px rgba(0,0,0,0.06);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+        body { background: var(--bg); color: #333; padding-bottom: 85px; min-height: 100vh; }
+        .hidden { display: none !important; }
+
+        /* Login Screen */
+        .login-container {
+            min-height: 100vh; display: flex; justify-content: center; align-items: center;
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary), var(--accent)); padding: 20px;
+        }
+        .login-card {
+            background: var(--white); width: 100%; max-width: 420px; padding: 30px 25px;
+            border-radius: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.25); text-align: center;
+        }
+        .role-switch { display: flex; background: #e5f0ff; border-radius: 20px; padding: 5px; margin-bottom: 25px; }
+        .role-btn {
+            flex: 1; padding: 12px; border: none; border-radius: 15px; background: transparent;
+            color: var(--primary); font-weight: 700; font-size: 15px; cursor: pointer; transition: 0.3s;
+        }
+        .role-btn.active { background: var(--primary); color: var(--white); box-shadow: 0 4px 10px rgba(21, 101, 192, 0.3); }
+
+        .input-group { position: relative; margin-bottom: 15px; }
+        .input-group i { position: absolute; right: 18px; top: 50%; transform: translateY(-50%); color: var(--primary); font-size: 18px; }
+        .input-group input, .input-group select {
+            width: 100%; height: 55px; padding: 0 50px 0 15px; border: 2px solid #e1edff;
+            border-radius: 20px; background: #f4f8ff; outline: none; font-size: 15px; font-weight: 600; transition: 0.3s;
+        }
+        .input-group input:focus, .input-group select:focus { border-color: var(--primary); background: var(--white); }
+
+        .submit-btn {
+            width: 100%; height: 55px; background: linear-gradient(90deg, var(--primary), var(--accent));
+            color: var(--white); border: none; border-radius: 20px; font-weight: 700; font-size: 17px;
+            cursor: pointer; box-shadow: 0 8px 20px rgba(0,168,255,0.3); margin-top: 10px;
+        }
+
+        /* App Layout */
+        header {
+            height: 75px; background: linear-gradient(90deg, var(--primary-dark), var(--primary));
+            color: var(--white); display: flex; align-items: center; justify-content: space-between;
+            padding: 0 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.15); position: sticky; top: 0; z-index: 100;
+        }
+        header .user-info { display: flex; align-items: center; gap: 12px; }
+        header .user-info i { font-size: 28px; color: var(--accent); }
+        header .logout-btn {
+            background: rgba(255,255,255,0.15); border: none; color: var(--white); width: 42px; height: 42px;
+            border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px;
+        }
+
+        .content-area { padding: 20px; max-width: 600px; margin: 0 auto; }
+        .card { background: var(--white); border-radius: 25px; padding: 20px; margin-bottom: 15px; box-shadow: var(--card-shadow); }
+
+        .grid-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px; }
+        .stat-box { background: var(--white); padding: 18px; border-radius: 22px; text-align: center; box-shadow: var(--card-shadow); }
+        .stat-box i {
+            width: 50px; height: 50px; background: #e5f0ff; color: var(--primary); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-size: 22px;
+        }
+        .stat-box h3 { font-size: 20px; color: var(--primary); font-weight: 900; }
+        .stat-box p { color: #777; font-size: 13px; }
+
+        /* Navigation */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0; height: 70px; background: var(--white);
+            display: flex; justify-around: space-around; align-items: center;
+            box-shadow: 0 -5px 25px rgba(0,0,0,0.08); border-top-left-radius: 25px; border-top-right-radius: 25px; z-index: 1000;
+        }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center; color: #888; border: none;
+            background: none; cursor: pointer; font-size: 10px; font-weight: 700; gap: 4px; flex: 1;
+        }
+        .nav-item i { font-size: 18px; }
+        .nav-item.active { color: var(--primary); }
+
+        /* General Components */
+        .item-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #edf2f7; }
+        .item-row:last-child { border-bottom: none; }
+        .btn-action { padding: 8px 14px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 12px; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-warning { background: var(--warning); color: white; }
+
+        .modal {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6);
+            display: flex; justify-content: center; align-items: center; z-index: 2000; padding: 20px;
+        }
+        .modal-content { background: white; padding: 25px; border-radius: 25px; width: 100%; max-width: 450px; }
+        textarea { width: 100%; height: 100px; border: 2px solid #e1edff; border-radius: 15px; padding: 12px; outline: none; margin-bottom: 15px; resize: none; font-size: 14px; }
+        
+        .pdf-status {
+            padding: 10px 15px; border-radius: 12px; font-size: 13px; font-weight: bold; margin-bottom: 15px; display: none;
+        }
+        .pdf-status.success { background: #e8f5e9; color: var(--success); display: block; }
+        .pdf-status.error { background: #ffebee; color: var(--danger); display: block; }
+        .pdf-status.info { background: #e3f2fd; color: var(--primary); display: block; }
+    </style>
+</head>
+<body>
+
+    <!-- 1. شاشة الدخول -->
+    <div id="loginScreen" class="login-container">
+        <div class="login-card">
+            <div style="font-size: 55px; color: var(--primary); margin-bottom: 10px;">📡</div>
+            <h1 style="color: var(--primary); font-size: 24px;" id="networkBrandTitle">شبكة الأمير نت</h1>
+            <p style="color: #777; margin-bottom: 20px; font-size: 13px;">نظام المبيعات والإدارة الموحد</p>
+
+            <div class="role-switch">
+                <button class="role-btn active" onclick="switchLoginRole('admin')">👑 إدارة الشبكة</button>
+                <button class="role-btn" onclick="switchLoginRole('store')">🛒 لوحة البقالة</button>
+            </div>
+
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="input-group">
+                    <i class="fa-solid fa-user"></i>
+                    <input type="text" id="loginUsername" placeholder="اسم المستخدم" required>
+                </div>
+                <div class="input-group">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="loginPassword" placeholder="كلمة المرور" required>
+                </div>
+                <button type="submit" class="submit-btn">تسجيل الدخول</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 2. التطبيق الرئيسي -->
+    <div id="appInterface" class="hidden">
+        <header>
+            <div class="user-info">
+                <i class="fa-solid fa-circle-user"></i>
+                <div>
+                    <h2 id="headerTitle">المدير</h2>
+                    <span id="headerRole" style="font-size: 11px; opacity: 0.85;">المدير العام</span>
+                </div>
+            </div>
+            <button class="logout-btn" onclick="logout()" title="خروج"><i class="fa-solid fa-right-from-bracket"></i></button>
+        </header>
+
+        <main class="content-area" id="mainContent"></main>
+        <nav class="bottom-nav" id="bottomNav"></nav>
+    </div>
+
+    <!-- النافذة المنبثقة -->
+    <div id="modal" class="modal hidden">
+        <div class="modal-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h3 id="modalTitle" style="color: var(--primary);"></h3>
+                <i class="fa-solid fa-xmark" onclick="closeModal()" style="cursor: pointer; font-size: 20px;"></i>
+            </div>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+        let extractedPdfCodes = [];
+
+        function getDB() {
+            return {
+                settings: JSON.parse(localStorage.getItem('prince_settings')) || {
+                    networkName: 'شبكة الأمير نت',
+                    adminUser: 'admin',
+                    adminPass: '123456',
+                    currency: 'ريال',
+                    printFooter: 'شكراً لاستخدامكم شبكتنا'
+                },
+                stores: JSON.parse(localStorage.getItem('prince_stores')) || [],
+                cardTypes: JSON.parse(localStorage.getItem('prince_cardTypes')) || [],
+                stockCards: JSON.parse(localStorage.getItem('prince_stockCards')) || [],
+                sales: JSON.parse(localStorage.getItem('prince_sales')) || [],
+                notifications: JSON.parse(localStorage.getItem('prince_notifications')) || []
+            };
+        }
+
+        function saveDB(db) {
+            localStorage.setItem('prince_settings', JSON.stringify(db.settings));
+            localStorage.setItem('prince_stores', JSON.stringify(db.stores));
+            localStorage.setItem('prince_cardTypes', JSON.stringify(db.cardTypes));
+            localStorage.setItem('prince_stockCards', JSON.stringify(db.stockCards));
+            localStorage.setItem('prince_sales', JSON.stringify(db.sales));
+            localStorage.setItem('prince_notifications', JSON.stringify(db.notifications));
+        }
+
+        let currentRole = 'admin';
+        let currentUser = null;
+
+        function switchLoginRole(role) {
+            currentRole = role;
+            const btns = document.querySelectorAll('.role-btn');
+            btns[0].classList.toggle('active', role === 'admin');
+            btns[1].classList.toggle('active', role === 'store');
+        }
+
+        function generateAccountNumber() {
+            return Math.floor(100000 + Math.random() * 900000).toString();
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const db = getDB();
+            const user = document.getElementById('loginUsername').value.trim().toLowerCase();
+            const pass = document.getElementById('loginPassword').value.trim();
+
+            if (currentRole === 'admin') {
+                const adminUser = (db.settings.adminUser || 'admin').toLowerCase();
+                const adminPass = db.settings.adminPass || '123456';
+
+                if (user === adminUser && pass === adminPass) {
+                    currentUser = { name: 'المدير العام', role: 'admin' };
+                    launchApp();
+                } else {
+                    alert('خطأ: اسم المستخدم أو كلمة المرور غير صحيحة للمدير!');
+                }
+            } else {
+                const store = db.stores.find(s => s.username.toLowerCase() === user && s.password === pass);
+                if (store) {
+                    currentUser = { ...store, role: 'store' };
+                    launchApp();
+                } else {
+                    alert('خطأ: اسم المستخدم أو كلمة المرور للبقالة غير صحيحة!');
+                }
+            }
+        }
+
+        function launchApp() {
+            const db = getDB();
+            document.getElementById('networkBrandTitle').innerText = db.settings.networkName;
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('appInterface').classList.remove('hidden');
+
+            document.getElementById('headerTitle').innerText = currentUser.name;
+            document.getElementById('headerRole').innerText = currentUser.role === 'admin' ? 'المدير العام' : 'حساب بقالة';
+
+            renderBottomNav();
+            navigate(currentUser.role === 'admin' ? 'admin_home' : 'store_home');
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('appInterface').classList.add('hidden');
+            document.getElementById('loginScreen').classList.remove('hidden');
+        }
+
+        function renderBottomNav() {
+            const nav = document.getElementById('bottomNav');
+            if (currentUser.role === 'admin') {
+                nav.innerHTML = `
+                    <button class="nav-item active" onclick="navigate('admin_home')"><i class="fa-solid fa-chart-line"></i>الرئيسية</button>
+                    <button class="nav-item" onclick="navigate('admin_stores')"><i class="fa-solid fa-shop"></i>البقالات</button>
+                    <button class="nav-item" onclick="navigate('admin_cards')"><i class="fa-solid fa-ticket"></i>الكروت</button>
+                    <button class="nav-item" onclick="navigate('admin_notify')"><i class="fa-solid fa-bell"></i>الإشعارات</button>
+                    <button class="nav-item" onclick="navigate('admin_settings')"><i class="fa-solid fa-gear"></i>الإعدادات</button>
+                `;
+            } else {
+                nav.innerHTML = `
+                    <button class="nav-item active" onclick="navigate('store_home')"><i class="fa-solid fa-house"></i>الرئيسية</button>
+                    <button class="nav-item" onclick="navigate('store_sell')"><i class="fa-solid fa-cart-plus"></i>بيع كرت</button>
+                    <button class="nav-item" onclick="navigate('store_transfer')"><i class="fa-solid fa-paper-plane"></i>تحويل رصيد</button>
+                    <button class="nav-item" onclick="navigate('store_sales')"><i class="fa-solid fa-list-check"></i>المبيعات</button>
+                `;
+            }
+        }
+
+        function setNavActive(idx) {
+            const items = document.querySelectorAll('.nav-item');
+            items.forEach((item, i) => item.classList.toggle('active', i === idx));
+        }
+
+        function navigate(page) {
+            const main = document.getElementById('mainContent');
+            const db = getDB();
+
+            if (page === 'admin_home') {
+                setNavActive(0);
+                const totalSales = db.sales.reduce((sum, s) => sum + Number(s.price), 0);
+                const unusedCards = db.stockCards.filter(c => !c.used).length;
+
+                main.innerHTML = `
+                    <div class="grid-stats">
+                        <div class="stat-box"><i class="fa-solid fa-shop"></i><h3>${db.stores.length}</h3><p>البقالات</p></div>
+                        <div class="stat-box"><i class="fa-solid fa-ticket"></i><h3>${unusedCards}</h3><p>الكروت المتاحة</p></div>
+                        <div class="stat-box"><i class="fa-solid fa-money-bill-wave"></i><h3>${totalSales}</h3><p>إجمالي المبيعات</p></div>
+                        <div class="stat-box"><i class="fa-solid fa-layer-group"></i><h3>${db.cardTypes.length}</h3><p>أنواع الأصناف</p></div>
+                    </div>
+                    <div class="card">
+                        <h3 style="color:var(--primary); margin-bottom:12px;"><i class="fa-solid fa-bolt"></i> إدارات سريعة</h3>
+                        <button class="submit-btn" style="margin-bottom:8px" onclick="navigate('admin_import_pdf')">📥 استيراد كروت من PDF / نص</button>
+                        <button class="submit-btn" style="background:var(--primary-dark); margin-bottom:8px" onclick="navigate('admin_recharge')">💳 شحن رصيد بقالة</button>
+                    </div>
+                `;
+            }
+
+            else if (page === 'admin_stores') {
+                setNavActive(1);
+                let storesHTML = db.stores.length === 0 ? '<p style="text-align:center; padding:15px; color:#777">لا توجد بقالات مضافة</p>' : '';
+                db.stores.forEach((store, index) => {
+                    storesHTML += `
+                        <div class="item-row">
+                            <div>
+                                <h4 style="color:var(--primary)">${store.name}</h4>
+                                <div style="font-size:12px; color:#555">حساب: <b style="color:var(--primary)">${store.accNo}</b> | المستخدم: ${store.username}</div>
+                                <div style="font-size:13px; font-weight:bold; color:var(--success)">الرصيد: ${store.balance} ${db.settings.currency}</div>
+                            </div>
+                            <button class="btn-action btn-danger" onclick="deleteStore(${index})"><i class="fa-solid fa-trash"></i> حذف</button>
+                        </div>
+                    `;
+                });
+
+                main.innerHTML = `
+                    <div class="card">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                            <h3 style="color:var(--primary)">قائمة البقالات والرصيد</h3>
+                            <button class="btn-action btn-primary" onclick="navigate('admin_add_store')">+ إضافة بقالة</button>
+                        </div>
+                        ${storesHTML}
+                    </div>
+                `;
+            }
+
+            else if (page === 'admin_add_store') {
+                main.innerHTML = `
+                    <div class="card">
+                        <h3 style="color:var(--primary); margin-bottom:15px;">إضافة بقالة جديدة</h3>
+                        <form onsubmit="addStore(event)">
+                            <div class="input-group"><i class="fa-solid fa-shop"></i><input type="text" id="stName" placeholder="اسم البقالة" required></div>
+                            <div class="input-group"><i class="fa-solid fa-user"></i><input type="text" id="stUser" placeholder="اسم المستخدم للدخول" required></div>
+                            <div class="input-group"><i class="fa-solid fa-lock"></i><input type="password" id="stPass" placeholder="كلمة المرور" required></div>
+                            <div class="input-group"><i class="fa-solid fa-wallet"></i><input type="number" id="stBal" placeholder="الرصيد الافتتاحي" value="0" required></div>
+                            <button type="submit" class="submit-btn">حفظ وتوليد رقم الحساب</button>
+                        </form>
+                    </div>
+                `;
+            }
+
+            else if (page === 'admin_recharge') {
+                let storesHTML = db.stores.length === 0 ? '<p style="text-align:center; color:#777">لا توجد بقالات لشحنها</p>' : '';
+                db.stores.forEach((store, index) => {
+                    storesHTML += `
+                        <div class="item-row">
+                            <div>
+                                <h4 style="color:var(--primary)">${store.name} (${store.accNo})</h4>
+                                <span style="font-size:12px; color:var(--success); font-weight:bold;">الرصيد الحالي: ${store.balance} ${db.settings.currency}</span>
+                            </div>
+                            <button class="btn-action btn-success" onclick="openRechargeModal(${index})">+ شحن رصيد</button>
+                        </div>
+                    `;
+                });
+
+                main.innerHTML = `<div class="card"><h3 style="color:var(--primary); margin-bottom:15px;">اختر البقالة لشحن رصيدها</h3>${storesHTML}</div>`;
+            }
+
+            else if (page === 'admin_cards') {
+                setNavActive(2);
+                let typesHTML = db.cardTypes.length === 0 ? '<p style="text-align:center; padding:15px; color:#777">لا توجد أصناف كروت مضافة</p>' : '';
+                db.cardTypes.forEach((t, index) => {
+                    const count = db.stockCards.filter(c => c.type === t.name && !c.used).length;
+                    typesHTML += `
+                        <div class="item-row">
+                            <div>
+                                <h4 style="color:var(--primary)">${t.name}</h4>
+                                <span style="font-size:12px; color:#666">الجملة: ${t.cost} | البيع: ${t.price} | المتاحة بالمخزون: <b>${count}</b></span>
+                            </div>
+                            <button class="btn-action btn-danger" onclick="deleteCardType(${index})"><i class="fa-solid fa-trash"></i> حذف</button>
+                        </div>
+                    `;
+                });
+
+                main.innerHTML = `
+                    <div class="card">
+                        <h3 style="color:var(--primary); margin-bottom:15px;">إضافة صنف كروت جديد</h3>
+                        <form onsubmit="addCardType(event)">
+                            <div class="input-group"><i class="fa-solid fa-tag"></i><input type="text" id="ctName" placeholder="اسم الصنف (مثال: كرت 1000)" required></div>
+                            <div class="input-group"><i class="fa-solid fa-dollar-sign"></i><input type="number" id="ctCost" placeholder="سعر التكلفة (الجملة)" required></div>
+                            <div class="input-group"><i class="fa-solid fa-money-bill"></i><input type="number" id="ctPrice" placeholder="سعر البيع للبقالة" required></div>
+                            <button type="submit" class="submit-btn">حفظ الصنف</button>
+                        </form>
+                    </div>
+                    <div class="card">
+                        <h3 style="color:var(--primary); margin-bottom:15px;">الأصناف المتوفرة</h3>
+                        ${typesHTML}
+                    </div>
+                `;
+            }
+
+            else if (page === 'admin_import_pdf') {
+                extractedPdfCodes = [];
+                let options = db.cardTypes.map(t => `<option value="${t.name}">${t.name}</option>`).join('');
+                main.innerHTML = `
+                    <div class="card">
+                        <h3 style="color:var(--primary); margin-bottom:15px;">استيراد كروت من ملف PDF أو نص</h3>
+                        <form onsubmit="handleImportCards(event)">
+                            <div class="input-group">
+                                <i class="fa-solid fa-list"></i>
+                                <select id="impType" required><option value="">اختر صنف الكروت</option>${options}</select>
+                            </div>
+                            <div class="input-group"><i class="fa-solid fa-hashtag"></i><input type="number" id="impLimit" placeholder="حدد العدد المطلوب استخراجه (اختياري)"></div>
+                            
+                            <p style="font-size:12px; font-weight:bold; color:var(--primary); margin-bottom:5px;">اختر ملف PDF للكروت:</p>
+                            <div class="input-group">
+                                <i class="fa-solid fa-file-pdf"></i>
+                                <input type="file" id="impFile" accept=".pdf" onchange="parsePDF(this)">
+                            </div>
+
+                            <div id="pdfStatusBox" class="pdf-status"></div>
+
+                            <p style="font-size:12px; font-weight:bold; color:var(--primary); margin:10px 0 5px;">أو إلصق الأرقام يدوياً هنا:</p>
+                            <textarea id="impText" placeholder="أرقام الكروت هنا..."></textarea>
+                            <button type="submit" class="submit-btn">حفظ الكروت في المخزون</button>
+                        </form>
+                    </div>
+                `;
+            }
+
+            else if (page === 'admin_notify') {
+                setNavActive(3);
+                let storeOpts = db.stores.map(s => `<option value="${s.username}">${s.name}</option>`).join('');
+                let notifHTML = db.notifications.length === 0 ? '<p style="text-align:center; padding:15px; color:#777">لا توجد إشعارات مرسلة</p>' : '';
+                db.notifications.slice().reverse().forEach((n, idx) => {
+                    notifHTML += `
+                        <div class="item-row">
+                            <div>
+                                <h4>إلى: ${n.target === 'all' ? 'الجميع' : n.targetName}</h4>
+                                <p style="font-size:13px; color:#444">${n.msg}</p>
+                                <span style="font-size:10px; color:#999">${n.date}</span>
+                            </div>
+                            <button class="btn-action btn-danger" onclick="deleteNotification(${db.notifications.length - 1 - idx})"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    `;
+                });
+
+                main.innerHTML = `
+                    <div class="card">
+                        <h3 style="color:var(--primary); margin-bottom:15px;">كتابة إشعار / رسالة</h3>
+                        <form onsubmit="sendNotification(event)">
+                            <div class="input-group">
+                                <i class="fa-solid fa-store"></i>
+                                <select id="notifTarget"><option value="all">كافة البقالات (الجميع)</option>${storeOpts}</select>
+                            </div>
+                            <textarea id="notifMsg" placeholder="اكتب نص الرسالة هنا..." required></textarea>
+                            <button type="submit" class="submit-btn">إرسال الإشعار</button>
+                        </form>
+                    </div>
+                    <div class="card"><h3 style="color:var(--primary); margin-bottom:15px;">الرسائل المرسلة</h3>${notifHTML}</div>
+                `;
+            }
+
+            else if (page === 'admin_settings') {
+                setNavActive(4);
+                main.innerHTML = `
+                    <div class="card">
+                        <h3 style="color:var(--primary); margin-bottom:15px;"><i class="fa-solid fa-user-gear"></i> تغيير اسم ورمز دخول المدير</h3>
+                        <form onsubmit="saveAdminCreds(event)">
+                            <div class="input-group"><i class="fa-solid fa-user"></i><input type="text" id="setAdminUser" value="${db.settings.adminUser}" placeholder="اسم مستخدم المدير الجديد" required></div>
+                            <div class="input-group"><i class="fa-solid fa-lock"></i><input type="password" id="setAdminPass" value="${db.settings.adminPass}" placeholder="كلمة مرور المدير الجديدة" required></div>
+                            <button type="submit" class="submit-btn">تحديث بيانات الدخول</button>
+                        </form>
+                    </div>
+                    <div class="card">
+                        <h3 style="color:var(--danger); margin-bottom:15px;"><i class="fa-solid fa-triangle-exclamation"></i> تصفير البرنامج وإعادة ضبط المصنع</h3>
+                        <p style="font-size:12px; color:#666; margin-bottom:15px;">تنبيه: سيؤدي هذا الخيار إلى حذف كافة البقالات، الأصناف، الكروت، والمبيعات نهائياً!</p>
+                        <button class="submit-btn" style="background:var(--danger)" onclick="resetSystem()">تصفير وتجهيز البرنامج من جديد</button>
+                    </div>
+                `;
+            }
+
+            else if (page === 'store_home') {
+                setNavActive(0);
+                const currentStore = db.stores.find(s => s.username === currentUser.username) || currentUser;
+                const myNotifs = db.notifications.filter(n => n.target === 'all' || n.target === currentStore.username);
+                let notifCards = myNotifs.map(n => `<div style="background:#fff3e0; padding:10px; border-radius:12px; margin-bottom:8px; font-size:13px; color:#e65100;"><b>📌 إشعار:</b> ${n.msg}</div>`).join('');
+
+                main.innerHTML = `
+                    <div class="card" style="text-align:center; padding:20px 15px;">
+                        <i class="fa-solid fa-shop" style="font-size:40px; color:var(--primary); margin-bottom:10px;"></i>
+                        <h2>${currentStore.name}</h2>
+                        <div style="margin-top:10px; background:#e5f0ff; padding:12px; border-radius:15px;">
+                            <span style="color:#555; font-size:12px;">رقم الحساب الخاص بك</span>
+                            <h2 style="color:var(--primary); font-size:24px;">${currentStore.accNo}</h2>
+                        </div>
+                        <div style="margin-top:10px; background:#e8f5e9; padding:12px; border-radius:15px;">
+                            <span style="color:#555; font-size:12px;">رصيدك المتاح</span>
+                            <h1 style="color:var(--success); font-size:30px;">${currentStore.balance} <small style="font-size:14px">${db.settings.currency}</small></h1>
+                        </div>
+                    </div>
+                    ${myNotifs.length > 0 ? `<div class="card"><h4 style="color:var(--warning); margin-bottom:10px;">صندوق الرسائل للإدارة</h4>${notifCards}</div>` : ''}
+                `;
+            }
+
+            else if (page === 'store_sell') {
+                setNavActive(1);
+                let cardsHTML = db.cardTypes.length === 0 ? '<p style="text-align:center; color:#777">لا توجد كروت متاحة</p>' : '';
+                db.cardTypes.forEach((type) => {
+                    cardsHTML += `
+                        <div class="item-row">
+                            <div>
+                                <h4 style="color:var(--primary)">${type.name}</h4>
+                                <span style="font-size:12px; color:var(--success); font-weight:bold;">السعر: ${type.price} ${db.settings.currency}</span>
+                            </div>
+                            <button class="btn-action btn-success" onclick="openSMSModal('${type.name}', ${type.price})">بيع واستخراج</button>
+                        </div>
+                    `;
+                });
+
+                main.innerHTML = `<div class="card"><h3 style="color:var(--primary); margin-bottom:15px;">بيع كروت الإنترنت</h3>${cardsHTML}</div>`;
+            }
+
+            else if (page === 'store_transfer') {
+                setNavActive(2);
+                main.innerHTML = `
+                    <div class="card">
+                        <h3 style="color:var(--primary); margin-bottom:15px;">تحويل رصيد لبقالة أخرى</h3>
+                        <form onsubmit="handleTransfer(event)">
+                            <div class="input-group"><i class="fa-solid fa-hashtag"></i><input type="text" id="trAccNo" placeholder="رقم حساب البقالة (6 أرقام)" required pattern="\\d{6}"></div>
+                            <div class="input-group"><i class="fa-solid fa-money-bill-wave"></i><input type="number" id="trAmount" placeholder="المبلغ المراد تحويله" required></div>
+                            <button type="submit" class="submit-btn">تأكيد التحويل المباشر</button>
+                        </form>
+                    </div>
+                `;
+            }
+
+            else if (page === 'store_sales') {
+                setNavActive(3);
+                const mySales = db.sales.filter(s => s.storeUser === currentUser.username);
+                let salesHTML = mySales.length === 0 ? '<p style="text-align:center; color:#777">لا توجد مبيعات مسجلة</p>' : '';
+                mySales.slice().reverse().forEach((s) => {
+                    salesHTML += `
+                        <div class="item-row">
+                            <div>
+                                <h4>${s.cardType}</h4>
+                                <span style="font-size:12px; color:#666">الزبون: ${s.phone} | الكرت: <b>${s.cardNo}</b></span>
+                                <div style="font-size:10px; color:#999">${s.date}</div>
+                            </div>
+                            <span style="color:var(--success); font-weight:bold">${s.price} ${db.settings.currency}</span>
+                        </div>
+                    `;
+                });
+
+                main.innerHTML = `<div class="card"><h3 style="color:var(--primary); margin-bottom:15px;">سجل مبيعاتك</h3>${salesHTML}</div>`;
+            }
+        }
+
+        function addStore(e) {
+            e.preventDefault();
+            const db = getDB();
+            const newStore = {
+                name: document.getElementById('stName').value.trim(),
+                username: document.getElementById('stUser').value.trim(),
+                password: document.getElementById('stPass').value.trim(),
+                balance: Number(document.getElementById('stBal').value) || 0,
+                accNo: generateAccountNumber()
+            };
+            db.stores.push(newStore);
+            saveDB(db);
+            alert(`تمت إضافة البقالة بنجاح! رقم الحساب المولّد: ${newStore.accNo}`);
+            navigate('admin_stores');
+        }
+
+        function deleteStore(idx) {
+            if (confirm('هل أنت تأكيد من حذف هذه البقالة نهائياً؟')) {
+                const db = getDB();
+                db.stores.splice(idx, 1);
+                saveDB(db);
+                navigate('admin_stores');
+            }
+        }
+
+        function openRechargeModal(index) {
+            const db = getDB();
+            const store = db.stores[index];
+            document.getElementById('modalTitle').innerText = `شحن رصيد: ${store.name}`;
+            document.getElementById('modalBody').innerHTML = `
+                <form onsubmit="processRecharge(event, ${index})">
+                    <div class="input-group">
+                        <i class="fa-solid fa-money-bill"></i>
+                        <input type="number" id="rechAmt" placeholder="المبلغ المضاف" required autofocus>
+                    </div>
+                    <button type="submit" class="submit-btn">تأكيد إيداع الرصيد</button>
+                </form>
+            `;
+            document.getElementById('modal').classList.remove('hidden');
+        }
+
+        function processRecharge(e, index) {
+            e.preventDefault();
+            const amt = Number(document.getElementById('rechAmt').value);
+            if (amt > 0) {
+                const db = getDB();
+                db.stores[index].balance += amt;
+                saveDB(db);
+                closeModal();
+                alert('تم شحن الرصيد بنجاح!');
+                navigate('admin_recharge');
+            }
+        }
+
+        function addCardType(e) {
+            e.preventDefault();
+            const db = getDB();
+            db.cardTypes.push({
+                name: document.getElementById('ctName').value.trim(),
+                cost: Number(document.getElementById('ctCost').value),
+                price: Number(document.getElementById('ctPrice').value)
+            });
+            saveDB(db);
+            alert('تمت إضافة الصنف بنجاح!');
+            navigate('admin_cards');
+        }
+
+        function deleteCardType(idx) {
+            if (confirm('تأكيد حذف هذا الصنف من الكروت؟')) {
+                const db = getDB();
+                db.cardTypes.splice(idx, 1);
+                saveDB(db);
+                navigate('admin_cards');
+            }
+        }
+
+        async function parsePDF(fileInput) {
+            const statusBox = document.getElementById('pdfStatusBox');
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            statusBox.className = "pdf-status info";
+            statusBox.innerText = "جاري قراءة ملف PDF واستخراج الكروت...";
+
+            const reader = new FileReader();
+            reader.onload = async function() {
+                try {
+                    const typedarray = new Uint8Array(this.result);
+                    const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                    let text = "";
+                    for (let i = 1; i <= pdf.numPages; i++) {
+                        const page = await pdf.getPage(i);
+                        const content = await page.getTextContent();
+                        text += content.items.map(item => item.str).join(" ") + "\n";
+                    }
+                    const codes = text.match(/\b\d{6,15}\b/g);
+                    if (codes && codes.length > 0) {
+                        extractedPdfCodes = codes;
+                        document.getElementById('impText').value = codes.join("\n");
+                        statusBox.className = "pdf-status success";
+                        statusBox.innerText = `✅ تم استخراج ${codes.length} كرت بنجاح من الملف! اضغط "حفظ الكروت" لإضافتها.`;
+                    } else {
+                        extractedPdfCodes = [];
+                        statusBox.className = "pdf-status error";
+                        statusBox.innerText = "❌ لم يتم العثور على أرقام كروت صالحة داخل الملف!";
+                    }
+                } catch(err) {
+                    statusBox.className = "pdf-status error";
+                    statusBox.innerText = "❌ حدث خطأ أثناء قراءة ملف PDF!";
+                }
+            };
+            reader.readAsBuffer(file);
+        }
+
+        function handleImportCards(e) {
+            e.preventDefault();
+            const db = getDB();
+            const type = document.getElementById('impType').value;
+            const limit = Number(document.getElementById('impLimit').value);
+            const text = document.getElementById('impText').value.trim();
+            
+            if (!type) return alert('يرجى اختيار صنف الكروت!');
+
+            let lines = text ? text.split('\n').map(l => l.trim()).filter(l => l !== '') : extractedPdfCodes;
+
+            if (!lines || lines.length === 0) {
+                return alert('خطأ: لم يتم العثور على أي أرقام! يرجى اختيار ملف PDF أو إلصاق الأرقام يدوياً.');
+            }
+
+            if (limit && limit > 0) {
+                lines = lines.slice(0, limit);
+            }
+
+            lines.forEach(code => db.stockCards.push({ type: type, code: code, used: false }));
+            saveDB(db);
+            alert(`تم حفظ ${lines.length} كرت بنجاح في مخزون صنف (${type})!`);
+            extractedPdfCodes = [];
+            navigate('admin_cards');
+        }
+
+        function sendNotification(e) {
+            e.preventDefault();
+            const db = getDB();
+            const target = document.getElementById('notifTarget').value;
+            const msg = document.getElementById('notifMsg').value.trim();
+            let targetName = 'الجميع';
+            if (target !== 'all') {
+                const st = db.stores.find(s => s.username === target);
+                if (st) targetName = st.name;
+            }
+
+            db.notifications.push({ target: target, targetName: targetName, msg: msg, date: new Date().toLocaleString('ar-YE') });
+            saveDB(db);
+            alert('تم إرسال الرسالة والإشعار!');
+            navigate('admin_notify');
+        }
+
+        function deleteNotification(idx) {
+            if (confirm('تأكيد حذف الرسالة؟')) {
+                const db = getDB();
+                db.notifications.splice(idx, 1);
+                saveDB(db);
+                navigate('admin_notify');
+            }
+        }
+
+        function saveAdminCreds(e) {
+            e.preventDefault();
+            const db = getDB();
+            db.settings.adminUser = document.getElementById('setAdminUser').value.trim();
+            db.settings.adminPass = document.getElementById('setAdminPass').value.trim();
+            saveDB(db);
+            alert('تم تحديث اسم ورقم دخول المدير بنجاح!');
+        }
+
+        function resetSystem() {
+            if (confirm('تحذير: هل أنت متأكد تماماً من تصفير التطبيق ومسح كافة البيانات؟')) {
+                localStorage.clear();
+                alert('تم تصفير البرنامج بنجاح وسيتم إعادة التحميل الآن.');
+                location.reload();
+            }
+        }
+
+        function handleTransfer(e) {
+            e.preventDefault();
+            const accNo = document.getElementById('trAccNo').value.trim();
+            const amount = Number(document.getElementById('trAmount').value);
+            const db = getDB();
+            const senderIdx = db.stores.findIndex(s => s.username === currentUser.username);
+            const receiverIdx = db.stores.findIndex(s => s.accNo === accNo);
+
+            if (receiverIdx === -1) return alert('رقم الحساب غير موجود!');
+            if (receiverIdx === senderIdx) return alert('لا يمكنك التحويل لنفس الحساب!');
+            if (db.stores[senderIdx].balance < amount) return alert('رصيدك غير كافٍ للتحويل!');
+
+            db.stores[senderIdx].balance -= amount;
+            db.stores[receiverIdx].balance += amount;
+            saveDB(db);
+
+            alert(`تم تحويل ${amount} ${db.settings.currency} إلى (${db.stores[receiverIdx].name}) بنجاح!`);
+            navigate('store_home');
+        }
+
+        function openSMSModal(cardType, price) {
+            const db = getDB();
+            const currentStore = db.stores.find(s => s.username === currentUser.username);
+            if (currentStore.balance < price) return alert('عذراً، رصيدك غير كافٍ للبيع!');
+
+            document.getElementById('modalTitle').innerText = `بيع ${cardType}`;
+            document.getElementById('modalBody').innerHTML = `
+                <form onsubmit="processSell(event, '${cardType}', ${price})">
+                    <div class="input-group">
+                        <i class="fa-solid fa-mobile-screen"></i>
+                        <input type="tel" id="custPhone" placeholder="رقم الزبون (مثال: 771234567)" maxlength="9" required autofocus>
+                    </div>
+                    <button type="submit" class="submit-btn">إتمام البيع وإرسال SMS</button>
+                </form>
+            `;
+            document.getElementById('modal').classList.remove('hidden');
+        }
+
+        function closeModal() { document.getElementById('modal').classList.add('hidden'); }
+
+        function processSell(e, cardType, price) {
+            e.preventDefault();
+            const phone = document.getElementById('custPhone').value.trim();
+            
+            // شرط الفحص المباشر لرقم الهاتف
+            const phoneRegex = /^(77|73|71|78|70)\d{7}$/;
+            if (!phoneRegex.test(phone)) {
+                return alert('خطأ في رقم الهاتف! يجب أن يتكون الرقم من 9 أرقام بالضبط ويبدأ بـ (77 أو 73 أو 71 أو 78).');
+            }
+
+            const db = getDB();
+
+            const cardIdx = db.stockCards.findIndex(c => c.type === cardType && !c.used);
+            let cardNo = "";
+
+            if (cardIdx !== -1) {
+                cardNo = db.stockCards[cardIdx].code;
+                db.stockCards[cardIdx].used = true;
+            } else {
+                cardNo = Math.floor(1000000000 + Math.random() * 9000000000).toString();
+            }
+
+            const storeIdx = db.stores.findIndex(s => s.username === currentUser.username);
+            db.stores[storeIdx].balance -= price;
+
+            db.sales.push({
+                storeUser: currentUser.username,
+                storeName: currentUser.name,
+                cardType: cardType,
+                price: price,
+                phone: phone,
+                cardNo: cardNo,
+                date: new Date().toLocaleString('ar-YE')
+            });
+
+            saveDB(db);
+            closeModal();
+
+            const smsMessage = encodeURIComponent(`مرحباً بك في ${db.settings.networkName}\nتم شراء ${cardType}\nرقم الكرت: ${cardNo}\n${db.settings.printFooter}`);
+            window.location.href = `sms:${phone}?body=${smsMessage}`;
+
+            setTimeout(() => navigate('store_sales'), 500);
+        }
+    </script>
+</body>
+</html>
